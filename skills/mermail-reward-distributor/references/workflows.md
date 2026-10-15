@@ -4,7 +4,7 @@
 
 1. Parse the input into the canonical ledger and announce the proposed batch limit/count.
 2. Validate email, identity/salutation, reward type/value, claim path, duplicate codes, duplicate recipients, and tracking ID. Present exceptions.
-3. Resolve or, with distinct approval, create a current-workspace rewards mailbox through `mermail-agent-inbox`.
+3. Resolve or, with distinct approval, create a usable current-workspace sending mailbox through `mermail-administer-workspace`, not a verification-only agent inbox.
 4. Render drafts through `mermail-compose-email` and save them if useful. Do not send.
 5. Present the exact final preview and request approval for that named batch.
 6. On approval, send once through `send_email`; retain returned IDs and statuses.
@@ -25,6 +25,14 @@ Complete steps 1–5 of email-only rewards. Keep the email batch and payout batc
 ## C. Monitoring, claims, and exceptions
 
 Use a finite lookback (user supplied, otherwise propose one) and maximum results. A monitoring pass is read-only unless the user separately authorizes a reply/reissue.
+
+## Resume and partial completion
+
+Before the first external effect, retain a user-accessible campaign ledger in the authorized local artifact location or an explicitly selected existing store. Record workspace/mailbox IDs, campaign and batch version, tracking IDs, exact approved payload, stable per-message idempotency key, source draft/message/thread IDs, and `not_attempted`/`attempting`/`sent`/`failed`/`unknown` state. Keep reward codes and bearer claim URLs out of this audit ledger and summaries; keep only protected draft references for approved delivery. If no safe durable ledger is available, stop before sending and ask where to retain it.
+
+On resume, load that ledger before proposing any write. Reconcile returned message IDs once using authoritative bounded reads. An `attempting` record without a result is `unknown`, not unsent; never issue another send or payout to resolve uncertainty. A resend requires resolving the prior outcome and a new exact preview/approval. Reuse an idempotency key only for the identical method, path, query and body under the composition contract; a new key is not a retry workaround. Preserve partial results and never restart the whole batch. Independently retain wallet request IDs and pending state through the wallet owner; email delivery is not payout success.
+
+An opt-out remains excluded on later runs. Resuming or approving another batch does not undo it; any exception needs explicit user direction and a fresh exact preview. Respect rolling recipient limits and `Retry-After`; stop rather than splitting, switching surfaces, or continuing another batch to evade a limit.
 
 | Event | Record | Default action |
 | --- | --- | --- |

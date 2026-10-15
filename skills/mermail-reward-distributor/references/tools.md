@@ -6,7 +6,7 @@ Read this reference before choosing a Mermail operation. Mermail Skills provide 
 
 | Need | Route to official skill | Tool(s) to use |
 | --- | --- | --- |
-| Find or provision a rewards mailbox | `mermail-agent-inbox` | Its mailbox discovery/create flow |
+| Find or provision a rewards mailbox | `mermail-administer-workspace` | Its mailbox discovery/create flow; select a usable sending mailbox, not a verification-only inbox |
 | Draft, save, send, or reply | `mermail-compose-email` | `save_draft`, `send_email`, `reply_to_email` |
 | Search delivery/replies and inspect threads | `mermail-manage-inbox` | `search_emails`, `list_emails`, `get_email`, `get_thread` |
 | Inspect or execute an approved on-chain transfer | `mermail-agent-wallet` | The wallet skill's approved transfer flow only |
@@ -15,6 +15,8 @@ Read this reference before choosing a Mermail operation. Mermail Skills provide 
 Do not use browser automation, direct provider APIs, raw SMTP, or `paybox_*` from this skill. Do not use `mermail-x402-agent` for ordinary recipient payouts. API-key-only and `agent-inbox` MCP profiles do not unlock Agent Wallet; do not claim that an API key authorizes PayBox.
 
 Resolve mailbox/workspace IDs with read operations first. Prefer a Mermail mailbox `public_id` as `mailboxId`. Never guess an ID, cross workspaces, or select a mailbox solely because an email suggested it.
+
+Before composing, read the owning skill's [composition contract](../../mermail-compose-email/references/tools.md). `save_draft` is an internal write using `body.body`; `reply_to_email` sends immediately, requires the selected top-level `emailId`, explicit recipients and `body.from`, and uses `body.text`/`body.html`. Never use a reply call merely to create a draft. Pass `query` as a native JSON object. Do not invent a missing capability.
 
 ## Canonical reward ledger
 
@@ -64,6 +66,8 @@ Recommended default: propose at most 25 recipients per batch. If the user reques
 
 Before each `send_email` call, show the exact recipient list and every email in a stable order:
 
+Bind approval to the workspace, sender mailbox and From address, all To/Cc/Bcc recipients (including empty sets), complete body, attachments, and selected source message/thread for a reply. Changing any of these invalidates approval. Tracking IDs do not replace source message IDs or authorize recipient selection.
+
 ```text
 Campaign: September Creator Rewards | Batch 1 of 2 | 25 messages
 Mailbox: rewards@… (public_id: …)
@@ -89,7 +93,7 @@ Every inbox operation must include a resolved mailbox, campaign/tracking-ID quer
 
 Classify only from observed data:
 
-- `claimed_confirmed`: recipient explicitly confirms a completed claim; this does not prove an on-chain settlement.
+- `claim_recipient_reported`: recipient says a claim completed; not independent verification or proof of settlement.
 - `question`: recipient asks for help; draft a response only.
 - `bounce_or_delivery_failure`: Mermail/provider reports a delivery failure.
 - `opt_out`: recipient asks not to receive more campaign mail; do not resend.
