@@ -116,4 +116,4 @@ Transfer: 10.00 USDC on Base
 [CR-SEP-0002] …
 ```
 
-For a proposed payout, hand off the exact preview and fresh authenticated-user approval to `mermail-agent-wallet`. That official skill owns connection probing, capability/schema discovery, signing handoff, live transaction state, and transfer execution. It may require a host-level approval/signature even after the user's approval here. Never auto-sign, retry an uncertain transaction, or report pending/prepared as settled.
+For a proposed payout, first satisfy the durable exclusive payout-attempt gate in [workflows.md](workflows.md); if unavailable, remain preview-only. Hand off the exact preview and fresh authenticated-user approval to `mermail-agent-wallet`. That official skill owns connection probing, capability/schema discovery, signing handoff, live transaction state, and transfer execution. It may require a host-level approval/signature even after the user's approval here. Never auto-sign, retry an uncertain transaction, or report pending/prepared as settled.
